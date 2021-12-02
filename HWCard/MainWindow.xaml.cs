@@ -49,8 +49,8 @@ namespace HWCard
         }
         private int PlayerThisTurn
         {
-            get => State.Stage.Player == GameStage.Players.Player0 ? 0 :
-                   State.Stage.Player == GameStage.Players.Player1 ? 1 : -1;
+            get => State?.Stage.Player == GameStage.Players.Player0 ? 0 :
+                   State?.Stage.Player == GameStage.Players.Player1 ? 1 : -1;
         }
         private bool MyTurn
         {
@@ -60,13 +60,13 @@ namespace HWCard
         {
             get => PlayerID == 0 ? 1 : 0;
         }
-        private PlayerState MyState
+        private PlayerState? MyState
         {
-            get => State.Players[PlayerID];
+            get => State?.Players[PlayerID];
         }
-        private PlayerState EnemyState
+        private PlayerState? EnemyState
         {
-            get => State.Players[EnemyID];
+            get => State?.Players[EnemyID];
         }
         private void DisableAllActionBtn()
         {
@@ -76,13 +76,17 @@ namespace HWCard
             btn_reqend.IsEnabled = false;
             btn_nodef.IsEnabled = false;
         }
-        private GameState _state;
-        private GameState State
+        private GameState? _state;
+        private GameState? State
         {
             get => _state;
             set
             {
                 _state = value;
+                if(_state is null)
+                {
+                    return;
+                }
 
                 DisableAllActionBtn();
 
@@ -146,8 +150,8 @@ namespace HWCard
                             break;
                     }
                 }
-                txt_my_deck_n.Text = $"{MyState.Deck.Count}张";
-                txt_your_deck_n.Text = $"{EnemyState.Deck.Count}张";
+                txt_my_deck_n.Text = $"{MyState!.Deck.Count}张";
+                txt_your_deck_n.Text = $"{EnemyState!.Deck.Count}张";
                 txt_my_hand_n.Text = $"{MyState.Hand.Count}张";
                 txt_your_hand_n.Text = $"{EnemyState.Hand.Count}张";
 
@@ -178,14 +182,20 @@ namespace HWCard
                 }
                 txt_my_active.Text = MyState.Active?.Name ?? "";
                 txt_your_active.Text = EnemyState.Active?.Name ?? "";
+
+                lst_area_effect.Items.Clear();
+                foreach(var effect in _state.AreaEffects)
+                {
+                    lst_area_effect.Items.Add(effect.Name);
+                }
             }
         }
 
-        private NetClient client;
-        private NetConnection conn;
+        private NetClient? client;
+        private NetConnection? conn;
         private void SendMsg(IMessage msg)
         {
-            var message = client.CreateMessage();
+            var message = client!.CreateMessage();
             message.Write(JsonConvert.SerializeObject(msg, jsonSerializerSettings));
             client.SendMessage(message, conn, NetDeliveryMethod.ReliableOrdered);
         }
@@ -201,7 +211,7 @@ namespace HWCard
             NetIncomingMessage net_message;
             while (true)
             {
-                net_message = await Task.Run(() => client.WaitMessage(1000));
+                net_message = await Task.Run(() => client!.WaitMessage(1000));
                 if (net_message is null)
                 {
                     continue;
@@ -226,7 +236,7 @@ namespace HWCard
                     {
                         if (MyTurn)
                         {
-                            if(State.Stage.Stage == GameStage.Stages.SelectATK)
+                            if(State!.Stage.Stage == GameStage.Stages.SelectATK)
                             {
                                 btn_act.IsEnabled = true;
                                 btn_endturn.IsEnabled = true;
@@ -236,10 +246,26 @@ namespace HWCard
                             {
                                 btn_drop.IsEnabled = true;
                             }
+                            else if(State.Stage.Stage == GameStage.Stages.AskForAltATK)
+                            {
+                                List<string> options = new();
+                                options.Add("普通攻击");
+                                foreach(var altatk in MyState!.Active!.AlternativeATKs)
+                                {
+                                    options.Add(altatk.Name);
+                                }
+                                var dialog = new AltAtkSelect(options);
+                                dialog.ShowDialog();
+                                Message.AltAttack altatk_msg = new()
+                                {
+                                    AltAttackIdx = dialog.select - 1
+                                };
+                                SendMsg(altatk_msg);
+                            }
                         }
                         else
                         {
-                            if (State.Stage.Stage == GameStage.Stages.DEF)
+                            if (State!.Stage.Stage == GameStage.Stages.DEF)
                             {
                                 btn_act.IsEnabled = true;
                                 btn_nodef.IsEnabled = true;
@@ -251,7 +277,7 @@ namespace HWCard
                         log(msg!.GetType().Name);
                     }
                 }
-                client.Recycle(net_message);
+                client!.Recycle(net_message);
             }
         }
         private async void btn_connect_Click(object sender, RoutedEventArgs e)
@@ -283,28 +309,6 @@ namespace HWCard
             }
             log("已连接到服务器");
             await MainLoop();
-        }
-
-        private void lst_my_hand_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selected_id = lst_my_hand.SelectedIndex;
-            if (selected_id == -1)
-            {
-                return;
-            }
-            var card = MyState.Hand[selected_id];
-            txt_desc.Text = card.Description;
-        }
-
-        private void lst_your_hand_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selected_id = lst_your_hand.SelectedIndex;
-            if (selected_id == -1)
-            {
-                return;
-            }
-            var card = EnemyState.Hand[selected_id];
-            txt_desc.Text = card.Description;
         }
 
         private void btn_act_Click(object sender, RoutedEventArgs e)
@@ -358,28 +362,6 @@ namespace HWCard
             SendMsg(msg);
         }
 
-        private void lst_my_used_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selected_id = lst_my_used.SelectedIndex;
-            if (selected_id == -1)
-            {
-                return;
-            }
-            var card = MyState.OnBoard[selected_id];
-            txt_desc.Text = card.Description;
-        }
-
-        private void lst_your_used_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selected_id = lst_your_used.SelectedIndex;
-            if (selected_id == -1)
-            {
-                return;
-            }
-            var card = EnemyState.OnBoard[selected_id];
-            txt_desc.Text = card.Description;
-        }
-
         private void btn_nodef_Click(object sender, RoutedEventArgs e)
         {
             Message.Defense msg = new()
@@ -387,6 +369,60 @@ namespace HWCard
                 DefenseCardIdx = -1
             };
             SendMsg(msg);
+        }
+        private void lst_area_effect_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            int selected_id = lst_area_effect.SelectedIndex;
+            if (selected_id == -1)
+            {
+                return;
+            }
+            var effect = State!.AreaEffects[selected_id];
+            txt_desc.Text = effect.Description;
+        }
+
+        private void lst_my_hand_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            int selected_id = lst_my_hand.SelectedIndex;
+            if (selected_id == -1)
+            {
+                return;
+            }
+            var card = MyState!.Hand[selected_id];
+            txt_desc.Text = card.Description;
+        }
+
+        private void lst_my_used_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            int selected_id = lst_my_used.SelectedIndex;
+            if (selected_id == -1)
+            {
+                return;
+            }
+            var card = MyState!.OnBoard[selected_id];
+            txt_desc.Text = card.Description;
+        }
+
+        private void lst_your_used_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            int selected_id = lst_your_used.SelectedIndex;
+            if (selected_id == -1)
+            {
+                return;
+            }
+            var card = EnemyState!.OnBoard[selected_id];
+            txt_desc.Text = card.Description;
+        }
+
+        private void lst_your_hand_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            int selected_id = lst_your_hand.SelectedIndex;
+            if (selected_id == -1)
+            {
+                return;
+            }
+            var card = EnemyState!.Hand[selected_id];
+            txt_desc.Text = card.Description;
         }
     }
 }

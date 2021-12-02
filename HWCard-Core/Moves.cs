@@ -51,7 +51,7 @@
 
             return $"玩家{player_idx}将一张[{card.Name}]自爆了";
         }
-        public static string AttackAndDefense(GameState state, Random rand, int attacker_idx, int defenser_idx)
+        public static string AttackAndDefense(GameState state, Random rand, int attacker_idx, int defenser_idx, AlternativeATK? alt_atk)
         {
             var attacker = state.Players[attacker_idx];
             var defenser = state.Players[defenser_idx];
@@ -80,6 +80,12 @@
             }
 
             attacker.OnBoard.Add(attack_card);
+            if(alt_atk is not null)
+            {
+                alt_atk.Effect(state, attacker_idx);
+                return $"[{alt_atk.Name}]效果生效";
+            }
+
             var AttackList = attack_card.ATK_Destroy ?? new();
             if (defense_card is not null)
             {
@@ -123,23 +129,27 @@
             }
             return $"玩家{attacker_idx}的[{attack_card.Name}]向玩家{defenser_idx}发起了进攻，但没有造成什么伤害";
         }
-        public static string EndTurn(GameState state)
+        public static string EndTurn(GameState state, int attaker_idx, int defenser_idx)
         {
             List<string> msgs = new();
 
+            {
+                var player = state.Players[defenser_idx];
+                player.Hand.AddRange(player.OnBoard);
+                player.OnBoard.Clear();
+            }
             foreach (var player in state.Players)
             {
                 player.HandVisible = false;
-                player.Hand.AddRange(player.OnBoard);
-                player.OnBoard.Clear();
             }
 
             for (int i = state.AreaEffects.Count - 1; i >= 0; i--)
             {
-                var specialstate = state.AreaEffects[i];
-                if (specialstate.TurnsRemaining <= 0)
+                var effect = state.AreaEffects[i];
+                if (effect.TurnsRemaining <= 0)
                 {
-                    msgs.Add($"场上的[{specialstate.Name}]效果已消失");
+                    state.AreaEffects.RemoveAt(i);
+                    msgs.Add($"场上的[{effect.Name}]效果已消失");
                 }
             }
 
@@ -167,7 +177,7 @@
             }
             if (player0.Hand.Count < player1.Hand.Count)
             {
-                return "玩家0胜利";
+                return "玩家1胜利";
             }
             return "平局";
         }

@@ -26,22 +26,52 @@
         <TextBlock x:Name="txt_my_deck_n" HorizontalAlignment="Left" Margin="100,216,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="-0.134,0.549"/>
         <TextBlock x:Name="txt_your_deck_n" HorizontalAlignment="Left" Margin="703,216,0,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <ListBox x:Name="lst_my_hand" Margin="40,273,630,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_my_hand_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="GotFocus" Handler="lst_my_hand_SelectionChanged"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
         </ListBox>
         <ListBox x:Name="lst_your_hand" Margin="611,273,59,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_your_hand_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="GotFocus" Handler="lst_your_hand_SelectionChanged"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
         </ListBox>
         <Button x:Name="btn_act" Content="使用" HorizontalAlignment="Left" Margin="40,479,0,0" VerticalAlignment="Top" Height="28" Width="58" IsEnabled="False" Click="btn_act_Click"/>
         <TextBox x:Name="txt_desc" Margin="15,0,9,10" TextWrapping="Wrap" Background="White" VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" IsReadOnly="True" Height="85" VerticalAlignment="Bottom"/>
         <Button x:Name="btn_drop" Content="丢弃" HorizontalAlignment="Left" Margin="112,479,0,0" VerticalAlignment="Top" Height="28" Width="58" IsEnabled="False" Click="btn_drop_Click"/>
         <Button x:Name="btn_reqend" Content="请求结束游戏" HorizontalAlignment="Left" Margin="423,479,0,0" VerticalAlignment="Top" Height="28" Width="90" IsEnabled="False" Click="btn_reqend_Click"/>
         <Button x:Name="btn_endturn" Content="结束回合" HorizontalAlignment="Left" Margin="305,479,0,0" VerticalAlignment="Top" Height="28" Width="90" IsEnabled="False" Click="btn_endturn_Click"/>
-        <ListBox x:Name="lst_my_used" Margin="194,312,480,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_my_used_SelectionChanged"/>
+        <ListBox x:Name="lst_my_used" Margin="194,312,480,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_my_used_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="GotFocus" Handler="lst_my_used_SelectionChanged"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
         <Label Content="已使用" HorizontalAlignment="Left" Margin="194,282,0,0" VerticalAlignment="Top"/>
-        <ListBox x:Name="lst_your_used" Margin="467,312,207,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_your_used_SelectionChanged"/>
+        <ListBox x:Name="lst_your_used" Margin="467,312,207,184" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_your_used_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="GotFocus" Handler="lst_your_used_SelectionChanged"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
         <Label Content="已使用" HorizontalAlignment="Left" Margin="467,282,0,0" VerticalAlignment="Top"/>
         <Label Content="当前打出" HorizontalAlignment="Left" Margin="194,214,0,0" VerticalAlignment="Top"/>
         <TextBlock x:Name="txt_my_active" HorizontalAlignment="Left" Margin="195,239,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17" Width="109" Background="White"/>
         <Label Content="当前打出" HorizontalAlignment="Left" Margin="466,214,0,0" VerticalAlignment="Top"/>
         <TextBlock x:Name="txt_your_active" HorizontalAlignment="Left" Margin="467,239,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="17" Width="109" Background="White"/>
         <Button x:Name="btn_nodef" Content="放弃防御" HorizontalAlignment="Left" Margin="195,479,0,0" VerticalAlignment="Top" Height="28" Width="90" IsEnabled="False" Click="btn_nodef_Click"/>
+        <Label Content="场地效果" HorizontalAlignment="Left" Margin="358,256,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="lst_area_effect" Margin="329,285,345,211" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.CanContentScroll="True" SelectionChanged="lst_area_effect_SelectionChanged">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <EventSetter Event="GotFocus" Handler="lst_area_effect_SelectionChanged"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
     </Grid>
 </Window>

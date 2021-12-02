@@ -74,7 +74,7 @@
     {
         public string Name { get; }
         public string Description { get; }
-        public void Effect(GameState state);
+        public void Effect(GameState state, int player_idx);
     }
     public interface Card
     {

@@ -4,7 +4,7 @@
     {
         public static List<Card> AllPossibleCards
         {
-            get { return new() { new Scout(), new Interceptor(), new Azrael(), new Vulcan(), new Minelayer() }; }
+            get { return new() { new Scout(), new MissileCorvette(), new Interceptor(), new Azrael(), new Vulcan(), new Minelayer() }; }
         }
     }
 
@@ -20,12 +20,23 @@
         public List<CardType> DEF_Destroy => new();
         public bool IsInvulnerableInATK => true;
     }
+    public class MissileCorvette : Card
+    {
+        public CardType Type => CardType.Corvette;
+        public string Name => "导弹护航艇";
+        public string Description => @"进攻效果：破坏对方随机一张【□】
+防御效果：【□】类型的进攻无效
+被动效果：无";
+        public List<CardType> ATK_Destroy => new() { CardType.Corvette };
+        public List<CardType> DEF_NonDestroy => new() { CardType.Corvette };
+        public List<CardType> DEF_Destroy => new();
+    }
     public class Minesweeping : AlternativeATK
     {
         public string Name => "扫雷";
         public string Description => "使对方【布雷艇】本回合不能发挥防御效果";
 
-        public void Effect(GameState state)
+        public void Effect(GameState state, int player_idx)
         {
             state.AreaEffects.Add(new MinelayerCannotDefenseThisTurn());
         }

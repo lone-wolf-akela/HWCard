@@ -65,7 +65,7 @@ namespace HWCard_Server
 
             {
                 // get the answer
-                IMessage msg;
+                IMessage? msg;
                 while (!msg_pool[player_idx].TryDequeue(out msg))
                 { }
                 return msg;
@@ -122,29 +122,13 @@ namespace HWCard_Server
                         var attacker = state.Players[attacking_player_idx];
                         var defenser = state.Players[defensing_player_idx];
 
-                        // dealing with AlternativeATK
-                        var alt_atk_list = attacker.Active!.AlternativeATKs;
-                        if (alt_atk_list.Any())
-                        {
-                            state.Stage.Stage = GameStage.Stages.AskForAltATK;
-                            PublishState();
-                            var msg_altatk = ExpectMsg<Message.AltAttack>(PullFromPlayer(attacking_player_idx));
-                            if (msg_altatk.AltAttackIdx >= 0)
-                            {
-                                var altatk = attacker.Active!.AlternativeATKs[msg_altatk.AltAttackIdx];
-                                altatk.Effect(state);
-                                PublishLog($"激活了【{altatk.Name}】技能");
-                                continue;
-                            }
-                        }
-
                         // dealing with cloak and invulnerable
                         bool skip_def = false;
                         if (attacker.Active!.IsInvulnerableInATK)
                         {
                             skip_def = true;
                         }
-                        else
+                        else if(attacker.Active!.IsCloak)
                         {
                             var anti_cloak_in_def_board = from card in defenser.OnBoard
                                                           where card.IsAntiCloak select card;
@@ -174,13 +158,27 @@ namespace HWCard_Server
                             PublishLog(Moves.DisableActiveCard(state, defensing_player_idx));
                             PublishState();
                         }
-                        PublishLog(Moves.AttackAndDefense(state, random, attacking_player_idx, defensing_player_idx));
+                        // dealing with AlternativeATK
+                        AlternativeATK? alt_atk = null;
+                        var alt_atk_list = attacker.Active!.AlternativeATKs;
+                        if (alt_atk_list.Any())
+                        {
+                            state.Stage.Stage = GameStage.Stages.AskForAltATK;
+                            PublishState();
+                            var msg_altatk = ExpectMsg<Message.AltAttack>(PullFromPlayer(attacking_player_idx));
+                            if (msg_altatk.AltAttackIdx >= 0)
+                            {
+                                alt_atk = attacker.Active!.AlternativeATKs[msg_altatk.AltAttackIdx];
+                                PublishLog($"尝试使用【{alt_atk.Name}】技能");
+                            }
+                        }
+                        PublishLog(Moves.AttackAndDefense(state, random, attacking_player_idx, defensing_player_idx, alt_atk));
                         state.Stage.Stage = GameStage.Stages.SelectATK;
                         PublishState();
                     }
                     else if (msg is Message.EndTurn)
                     {
-                        PublishLog(Moves.EndTurn(state));
+                        PublishLog(Moves.EndTurn(state, attacking_player_idx, defensing_player_idx));
                         if (Moves.NeedCheckWin(state))
                         {
                             PublishLog(Moves.CheckWin(state));
